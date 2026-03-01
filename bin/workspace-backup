@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WORKSPACE="/home/claw/.openclaw/workspace"
+cd "$WORKSPACE"
+
+MODE="${1:-meaningful}" # meaningful | snapshot
+
+# Backup scope (requested files + bin apps)
+TARGETS=(
+  AGENTS.md
+  SOUL.md
+  USER.md
+  IDENTITY.md
+  TOOLS.md
+  HEARTBEAT.md
+  .gitignore
+  .openclaw/workspace-state.json
+  bin
+)
+
+# Ensure git repo exists
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git init >/dev/null
+fi
+
+# Configure default identity if missing
+if [[ -z "$(git config user.name || true)" ]]; then
+  git config user.name "Rook"
+fi
+if [[ -z "$(git config user.email || true)" ]]; then
+  git config user.email "rook@local"
+fi
+
+# Stage only backup scope paths that exist
+for p in "${TARGETS[@]}"; do
+  [[ -e "$p" ]] && git add "$p"
+done
+
+# Nothing staged? done.
+if git diff --cached --quiet; then
+  echo "No staged changes."
+  exit 0
+fi
+
+# For meaningful mode, require at least one non-workspace-state change
+if [[ "$MODE" == "meaningful" ]]; then
+  changed=$(git diff --cached --name-only)
+  meaningful=$(printf '%s\n' "$changed" | grep -v '^\.openclaw/workspace-state\.json$' || true)
+  if [[ -z "$meaningful" ]]; then
+    echo "Only workspace-state changed; skipping in meaningful mode."
+    git reset -q HEAD -- .openclaw/workspace-state.json || true
+    exit 0
+  fi
+fi
+
+# Build commit message with changed file list
+changed_csv=$(git diff --cached --name-only | tr '\n' ',' | sed 's/,$//')
+ts=$(date -u +"%Y-%m-%d %H:%M UTC")
+msg="backup(${MODE}): ${ts} | ${changed_csv}"
+
+# Commit
+git commit -m "$msg" >/dev/null
+
+# Push if remote exists
+if git remote get-url origin >/dev/null 2>&1; then
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  if [[ "$branch" == "HEAD" ]]; then
+    branch="main"
+    git branch -M "$branch" >/dev/null 2>&1 || true
+  fi
+  git push -u origin "$branch" >/dev/null
+  echo "Committed and pushed: $msg"
+else
+  echo "Committed locally (no origin remote configured): $msg"
+fi

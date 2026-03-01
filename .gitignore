@@ -1,0 +1,29 @@
+# Secrets / credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.env
+.env
+.env.*
+**/env.conf
+
+# OpenClaw/private state outside workspace (defense in depth)
+.config/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs/temp
+*.log
+tmp/
+.cache/
+
+# Node/python artifacts (if any tooling gets added)
+node_modules/
+__pycache__/
+*.pyc
