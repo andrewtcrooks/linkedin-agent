@@ -69,7 +69,16 @@ if git remote get-url origin >/dev/null 2>&1; then
     branch="main"
     git branch -M "$branch" >/dev/null 2>&1 || true
   fi
-  git push -u origin "$branch" >/dev/null
+
+  # Non-interactive auth: prefer GitHub App token helper when available
+  if [[ -x "$WORKSPACE/bin/gh-app-token" ]]; then
+    TOKEN="$($WORKSPACE/bin/gh-app-token)"
+    AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+    git -c http.https://github.com/.extraheader="$AUTH_HEADER" push -u origin "$branch" >/dev/null
+  else
+    git push -u origin "$branch" >/dev/null
+  fi
+
   echo "Committed and pushed: $msg"
 else
   echo "Committed locally (no origin remote configured): $msg"
