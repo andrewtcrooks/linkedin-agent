@@ -38,3 +38,13 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+### Marketing
+
+- Brand voice: Practical, direct, helpful (no hype)
+- Primary platforms: LinkedIn, X/Twitter, Website blog
+- Posting frequency: 3x/week
+- Target audience: Small businesses (5–50 employees) with manual ops workflows
+- Core offer: "Fix one workflow in 7 days"
+- CTA: 15-minute workflow triage call
+- Preferred verticals: Local services, agencies, clinics, retail
