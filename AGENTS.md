@@ -117,16 +117,6 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.
 
-### 💡 Token-Efficient Code Reading (jCodeMunch)
-
-When working with code, **never read whole files when you can get just the symbol**.
-jCodeMunch is configured as an MCP server — use it for any code exploration task:
-
-1. `index_repo` or `index_folder` once per codebase
-2. `search_symbols` to find what you need
-3. `get_symbol` to read only that piece
-
-This cuts token usage up to 99% vs opening full files. See `TOOLS.md` for full reference.
 
 **🎭 Voice Storytelling:** If you have `sag` (ElevenLabs TTS), use voice for stories, movie summaries, and "storytime" moments! Way more engaging than walls of text. Surprise people with funny voices.
 

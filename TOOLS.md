@@ -60,28 +60,6 @@ MCP tools available (call `muninn_guide` for full vault-aware usage instructions
 - `muninn_forget` — delete a specific memory
 - `muninn_guide` — get usage instructions from the DB itself
 
-### jCodeMunch — Token-Efficient Code Exploration
-
-jCodeMunch indexes codebases once with tree-sitter AST parsing and lets you retrieve
-exact symbols instead of reading whole files. Use it for any code task to cut token usage
-up to 99%.
-
-- **Transport:** stdio MCP (configured in `~/.openclaw/openclaw.json`)
-- **Binary:** `~/.local/bin/uvx jcodemunch-mcp`
-- **Cache:** `~/.code-index/`
-
-Key tools:
-- `index_repo` — index a GitHub repo (e.g. `owner/repo`)
-- `index_folder` — index a local directory
-- `get_repo_outline` — high-level repo structure
-- `get_file_outline` — symbols in a file
-- `search_symbols` — find functions/classes by name
-- `get_symbol` — retrieve exact symbol source
-- `search_text` — full-text fallback search
-
-**Usage pattern:** `index_repo` once → `search_symbols` to find → `get_symbol` to read.
-Never `cat` a whole file when jCodeMunch can get you the 200-token symbol instead.
-
 ### Marketing
 
 - Brand voice: Practical, direct, helpful (no hype)
