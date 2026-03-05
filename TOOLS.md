@@ -39,6 +39,27 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 Add whatever helps you do your job. This is your cheat sheet.
 
+### MuninnDB — Cognitive Memory
+
+MuninnDB is running on this Pi as a systemd user service (`muninn.service`).
+It provides persistent, cognitive memory across sessions via MCP.
+
+- **MCP endpoint:** `http://localhost:8750/mcp`
+- **REST API:** `http://localhost:8475`
+- **Web UI:** `http://localhost:8476` (admin / password — change after first login)
+- **Data dir:** `~/.muninn/data`
+- **Service:** `systemctl --user status muninn`
+- **Logs:** `muninn logs`
+- **Upgrade:** `muninn upgrade`
+
+MCP tools available (call `muninn_guide` for full vault-aware usage instructions):
+- `muninn_remember` — store a memory (concept + content + optional tags)
+- `muninn_recall` — retrieve relevant memories by context
+- `muninn_activate` — context-aware ranked recall (full cognitive pipeline)
+- `muninn_search` — text search across memories
+- `muninn_forget` — delete a specific memory
+- `muninn_guide` — get usage instructions from the DB itself
+
 ### Marketing
 
 - Brand voice: Practical, direct, helpful (no hype)

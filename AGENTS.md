@@ -19,10 +19,42 @@ Don't ask permission. Just do it.
 
 ## Memory
 
-You wake up fresh each session. These files are your continuity:
+You wake up fresh each session. You have two memory systems — use both:
+
+### 🧠 MuninnDB — Primary Long-Term Memory
+
+MuninnDB is running on this Pi as a systemd service. It provides cognitive memory that
+strengthens with use, fades when unused, and surfaces relevant context automatically.
+
+**On session start:** Call `muninn_activate` with your current context to surface relevant memories.
+
+**Store memories when:**
+- You learn something important about Andrew or his projects
+- A task completes with a significant outcome
+- You solve a non-obvious problem worth remembering
+- Andrew tells you to remember something
+
+**How to store:**
+```
+muninn_remember(concept="...", content="...", tags=["..."])
+```
+
+**How to recall:**
+```
+muninn_activate(context=["what you're working on"])
+```
+
+Call `muninn_guide` on first use for full instructions from the DB itself.
+
+See `TOOLS.md` for ports, service management, and web UI access.
+
+### 📁 File Memory — Session Logs & Curated Notes
 
 - **Daily notes:** `memory/YYYY-MM-DD.md` (create `memory/` if needed) — raw logs of what happened
-- **Long-term:** `MEMORY.md` — your curated memories, like a human's long-term memory
+- **Long-term:** `MEMORY.md` — curated memories for main session only (see security note below)
+
+Use file memory for things too sensitive for MuninnDB, or when you want structured notes.
+Use MuninnDB for everything else — it's persistent, searchable, and cognitively weighted.
 
 Capture what matters. Decisions, context, things to remember. Skip the secrets unless asked to keep them.
 
