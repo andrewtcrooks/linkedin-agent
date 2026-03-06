@@ -60,6 +60,12 @@ MCP tools available (call `muninn_guide` for full vault-aware usage instructions
 - `muninn_forget` — delete a specific memory
 - `muninn_guide` — get usage instructions from the DB itself
 
+### Web Browsing Policy
+
+- Default web page browsing/automation path: **agent-browser** skill/workflow.
+- Prefer agent-browser for opening pages, interacting with sites, scraping, screenshots, and web testing tasks.
+- Note: `agent-browser` currently depends on `playwright-core` under the hood.
+
 ### Marketing
 
 - Brand voice: Practical, direct, helpful (no hype)
