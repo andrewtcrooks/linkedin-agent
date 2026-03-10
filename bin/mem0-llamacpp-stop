@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+pkill -f "llama_cpp.server.*--port 8011" >/dev/null 2>&1 || true
+pkill -f "llama_cpp.server.*--port 8012" >/dev/null 2>&1 || true
+echo "stopped"

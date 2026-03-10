@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PY="/home/claw/.local/share/uv/tools/cognee/bin/python"
+MODEL_DIR="/home/claw/.cache/qmd/models"
+LLM_MODEL="$MODEL_DIR/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
+EMBED_MODEL="$MODEL_DIR/bge-small-en-v1.5-q8_0.gguf"
+LOG_DIR="/home/claw/.openclaw/workspace/.mem0-llamacpp"
+mkdir -p "$LOG_DIR"
+
+pkill -f "llama_cpp.server.*--port 8011" >/dev/null 2>&1 || true
+pkill -f "llama_cpp.server.*--port 8012" >/dev/null 2>&1 || true
+
+nohup "$PY" -m llama_cpp.server \
+  --host 127.0.0.1 --port 8011 \
+  --model "$LLM_MODEL" \
+  --model_alias qwen2.5-1.5b-instruct \
+  --n_ctx 4096 --n_threads -1 --n_gpu_layers 0 --api_key local \
+  > "$LOG_DIR/llm.log" 2>&1 &
+
+nohup "$PY" -m llama_cpp.server \
+  --host 127.0.0.1 --port 8012 \
+  --model "$EMBED_MODEL" \
+  --model_alias bge-small-en-v1.5 \
+  --embedding True --n_ctx 2048 --n_threads -1 --n_gpu_layers 0 --api_key local \
+  > "$LOG_DIR/embed.log" 2>&1 &
+
+echo "started"
