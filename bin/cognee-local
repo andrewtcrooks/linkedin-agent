@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Workspace-scoped Cognee runtime so data doesn't end up inside the uv tool package dir.
+export DATA_ROOT_DIRECTORY="${DATA_ROOT_DIRECTORY:-/home/claw/.openclaw/workspace/.cognee/data}"
+export SYSTEM_ROOT_DIRECTORY="${SYSTEM_ROOT_DIRECTORY:-/home/claw/.openclaw/workspace/.cognee/system}"
+export CACHE_ROOT_DIRECTORY="${CACHE_ROOT_DIRECTORY:-/home/claw/.openclaw/workspace/.cognee/cache}"
+export COGNEE_LOGS_DIR="${COGNEE_LOGS_DIR:-/home/claw/.openclaw/workspace/.cognee/logs}"
+export ENABLE_BACKEND_ACCESS_CONTROL="${ENABLE_BACKEND_ACCESS_CONTROL:-false}"
+
+mkdir -p "$DATA_ROOT_DIRECTORY" "$SYSTEM_ROOT_DIRECTORY" "$CACHE_ROOT_DIRECTORY" "$COGNEE_LOGS_DIR"
+
+exec "$HOME/.local/bin/cognee-cli" "$@"
