@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TARGET="/home/claw/.local/share/uv/tools/cognee/lib/python3.13/site-packages/cognee/infrastructure/llm/LLMGateway.py"
+
+if [ ! -f "$TARGET" ]; then
+  echo "cognee LLMGateway not found: $TARGET" >&2
+  exit 1
+fi
+
+if grep -q 'kwargs.pop("ontology_file_path", None)' "$TARGET"; then
+  echo "cognee patch already applied"
+  exit 0
+fi
+
+python3 - <<'PY'
+from pathlib import Path
+p=Path('/home/claw/.local/share/uv/tools/cognee/lib/python3.13/site-packages/cognee/infrastructure/llm/LLMGateway.py')
+s=p.read_text()
+old='''            llm_client = get_llm_client()\n            return llm_client.acreate_structured_output(\n                text_input=text_input,\n                system_prompt=system_prompt,\n                response_model=response_model,\n                **kwargs,\n            )\n'''
+new='''            llm_client = get_llm_client()\n            # Strip orchestration kwargs not accepted by llama-cpp/openai clients\n            kwargs.pop("ontology_file_path", None)\n            return llm_client.acreate_structured_output(\n                text_input=text_input,\n                system_prompt=system_prompt,\n                response_model=response_model,\n                **kwargs,\n            )\n'''
+if old not in s:
+    raise SystemExit('expected block not found; cognee version changed')
+p.write_text(s.replace(old,new,1))
+print('patched',p)
+PY

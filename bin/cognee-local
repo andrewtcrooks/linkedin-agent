@@ -23,4 +23,9 @@ export EMBEDDING_DIMENSIONS="${EMBEDDING_DIMENSIONS:-384}"
 
 mkdir -p "$DATA_ROOT_DIRECTORY" "$SYSTEM_ROOT_DIRECTORY" "$CACHE_ROOT_DIRECTORY" "$COGNEE_LOGS_DIR"
 
+# Keep local compatibility patch applied across cognee reinstalls/upgrades.
+if [ -x "/home/claw/.openclaw/workspace/bin/patch-cognee-local" ]; then
+  /home/claw/.openclaw/workspace/bin/patch-cognee-local >/dev/null 2>&1 || true
+fi
+
 exec "$HOME/.local/bin/cognee-cli" "$@"
