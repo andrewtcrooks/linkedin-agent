@@ -8,18 +8,22 @@ export CACHE_ROOT_DIRECTORY="${CACHE_ROOT_DIRECTORY:-/home/claw/.openclaw/worksp
 export COGNEE_LOGS_DIR="${COGNEE_LOGS_DIR:-/home/claw/.openclaw/workspace/.cognee/logs}"
 export ENABLE_BACKEND_ACCESS_CONTROL="${ENABLE_BACKEND_ACCESS_CONTROL:-false}"
 
-# Local LLM defaults aligned with QMD model cache
-export LLM_PROVIDER="${LLM_PROVIDER:-llama_cpp}"
-export LLM_MODEL="${LLM_MODEL:-Qwen2.5-1.5B-Instruct-Q4_K_M}"
-export LLAMA_CPP_MODEL_PATH="${LLAMA_CPP_MODEL_PATH:-/home/claw/.cache/qmd/models/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf}"
-export LLAMA_CPP_N_CTX="${LLAMA_CPP_N_CTX:-2048}"
-export LLAMA_CPP_N_GPU_LAYERS="${LLAMA_CPP_N_GPU_LAYERS:-0}"
-export LLAMA_CPP_CHAT_FORMAT="${LLAMA_CPP_CHAT_FORMAT:-chatml}"
-
-# Offline embedding defaults (Cognee does not use QMD's embedding model directly)
-export EMBEDDING_PROVIDER="${EMBEDDING_PROVIDER:-fastembed}"
-export EMBEDDING_MODEL="${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}"
+# Use llama_cpp OpenAI-compatible embedding server (already running on :8012)
+# fastembed requires internet to download models - not available on this Pi
+export EMBEDDING_PROVIDER="${EMBEDDING_PROVIDER:-openai}"
+export EMBEDDING_MODEL="${EMBEDDING_MODEL:-openai/bge-small-en-v1.5}"
+export EMBEDDING_ENDPOINT="${EMBEDDING_ENDPOINT:-http://127.0.0.1:8012/v1}"
+export EMBEDDING_API_KEY="${EMBEDDING_API_KEY:-local}"
 export EMBEDDING_DIMENSIONS="${EMBEDDING_DIMENSIONS:-384}"
+
+# Use llama_cpp OpenAI-compatible LLM server (already running on :8011)
+export LLM_PROVIDER="${LLM_PROVIDER:-openai}"
+export LLM_MODEL="${LLM_MODEL:-openai/qwen2.5-1.5b-instruct}"
+export LLM_ENDPOINT="${LLM_ENDPOINT:-http://127.0.0.1:8011/v1}"
+export LLM_API_KEY="${LLM_API_KEY:-local}"
+
+# Skip LLM connection test — has no timeout and hangs on slow Pi CPU
+export COGNEE_SKIP_CONNECTION_TEST="${COGNEE_SKIP_CONNECTION_TEST:-true}"
 
 mkdir -p "$DATA_ROOT_DIRECTORY" "$SYSTEM_ROOT_DIRECTORY" "$CACHE_ROOT_DIRECTORY" "$COGNEE_LOGS_DIR"
 

@@ -12,44 +12,24 @@
  *            Best for: "remember that Andrew prefers X", "what do I know about Y?"
  *            Read/write, vector similarity search
  *
- *   cognee — Structured knowledge graph (entities, relationships, concepts)
- *            Best for: deep knowledge about documents, long-term concept linking
- *            Slow on Pi (skip cognify), read/write via add+search CHUNKS
- *
  * Usage:
- *   mem-router add   <text>           — add to best backend (mem0 by default)
+ *   mem-router add   <text>           — add to mem0
  *   mem-router search <query>         -- search all backends, merge results
- *   mem-router search <query> --via=qmd|mem0|cognee
+ *   mem-router search <query> --via=qmd|mem0
  *   mem-router status                 -- health check all backends
  *
  * Environment (set in ~/.openclaw/.env or pass inline):
  *   MEM0_LLM_BASE_URL     default http://127.0.0.1:8011/v1
  *   MEM0_EMBED_BASE_URL   default http://127.0.0.1:8012/v1
- *   COGNEE_DB_PATH        default /home/claw/.openclaw/workspace/.cognee
  */
 
-import { execSync, execFileSync } from "child_process";
+import { execFileSync } from "child_process";
 import * as path from "path";
 import * as os from "os";
 
 const QMD     = "/home/claw/.bun/bin/qmd";
 const BUN     = "/home/claw/.bun/bin/bun";
 const MEM0DIR = path.join(os.homedir(), ".openclaw/workspace/skills/mem0/scripts");
-const PYTHON  = "/home/claw/.local/share/uv/tools/cognee/bin/python";
-
-const COGNEE_ENV = {
-  EMBEDDING_PROVIDER: "openai",
-  EMBEDDING_MODEL: "openai/bge-small-en-v1.5",
-  EMBEDDING_ENDPOINT: "http://127.0.0.1:8012/v1",
-  EMBEDDING_API_KEY: "local",
-  EMBEDDING_DIMENSIONS: "384",
-  LLM_PROVIDER: "openai",
-  LLM_MODEL: "openai/qwen2.5-1.5b-instruct",
-  LLM_ENDPOINT: "http://127.0.0.1:8011/v1",
-  LLM_API_KEY: "local",
-  ENABLE_BACKEND_ACCESS_CONTROL: "false",
-  COGNEE_SKIP_CONNECTION_TEST: "true",
-};
 
 // ── Routing rules ─────────────────────────────────────────────────────────────
 
@@ -59,7 +39,6 @@ const COGNEE_ENV = {
  * Rules:
  *  - Workspace/doc queries   → qmd  (markdown indexed files)
  *  - Personal facts/prefs    → mem0 (episodic memory)
- *  - Entity/concept queries  → cognee (knowledge graph chunks)
  *  - Default search          → mem0 + qmd (fast, parallel-ish)
  *  - Default add             → mem0
  */
@@ -68,14 +47,12 @@ function route(text, hints = {}) {
   if (hints.via) return [hints.via];
 
   const docKeywords = ["workspace", "file", "document", "notes", "skill", "agents", "readme"];
-  const graphKeywords = ["who is", "what is", "relationship", "entity", "concept", "knows about"];
   const personalKeywords = ["remember", "prefer", "andrew", "my ", "i like", "i use", "i am"];
 
   if (docKeywords.some(k => t.includes(k))) return ["qmd"];
-  if (graphKeywords.some(k => t.includes(k))) return ["cognee", "mem0"];
   if (personalKeywords.some(k => t.includes(k))) return ["mem0"];
 
-  // default search: both fast backends
+  // default search: both backends
   return ["mem0", "qmd"];
 }
 
@@ -144,52 +121,6 @@ function parseMem0Output(raw) {
   return results;
 }
 
-function cogneeAdd(text) {
-  const script = `
-import os, asyncio
-for k, v in ${JSON.stringify(COGNEE_ENV)}.items():
-    os.environ[k] = v
-import cognee
-asyncio.run(cognee.add(${JSON.stringify(text)}))
-print("added")
-`.trim();
-
-  try {
-    const out = execFileSync(PYTHON, ["-c", script], {
-      timeout: 90000,
-      encoding: "utf8",
-      env: { ...process.env, ...COGNEE_ENV },
-    });
-    return { backend: "cognee", success: true, output: out.trim() };
-  } catch (e) {
-    return { backend: "cognee", success: false, error: e.message };
-  }
-}
-
-function cogneeSearch(query, limit = 3) {
-  const script = `
-import os, asyncio, json
-for k, v in ${JSON.stringify(COGNEE_ENV)}.items():
-    os.environ[k] = v
-import cognee
-results = asyncio.run(cognee.search(${JSON.stringify(query)}, query_type=cognee.SearchType.CHUNKS))
-print(json.dumps([str(r) for r in (results or [])[:${limit}]]))
-`.trim();
-
-  try {
-    const out = execFileSync(PYTHON, ["-c", script], {
-      timeout: 90000,
-      encoding: "utf8",
-      env: { ...process.env, ...COGNEE_ENV },
-    });
-    const lines = out.split("\n").filter(l => l.startsWith("["));
-    const parsed = lines.length ? JSON.parse(lines[lines.length - 1]) : [];
-    return { backend: "cognee", results: parsed.map(r => ({ memory: r })) };
-  } catch (e) {
-    return { backend: "cognee", error: e.message, results: [] };
-  }
-}
-
 function checkStatus() {
   console.log("Checking memory backend status...\n");
 
@@ -205,26 +136,15 @@ function checkStatus() {
   try {
     execFileSync("curl", ["-sf", "-H", "Authorization: Bearer local",
       "http://127.0.0.1:8012/v1/models"], { timeout: 5000, stdio: "pipe" });
-    console.log("✓ mem0   — OK (embed server up)");
+    console.log("✓ mem0   — OK (embed server up on :8012)");
   } catch (e) {
     console.log("✗ mem0   — FAIL: embed server not responding on :8012");
-  }
-
-  // cognee (check LLM endpoint)
-  try {
-    execFileSync("curl", ["-sf", "-H", "Authorization: Bearer local",
-      "http://127.0.0.1:8011/v1/models"], { timeout: 5000, stdio: "pipe" });
-    console.log("✓ cognee — OK (LLM server up on :8011)");
-    console.log("  Note: cognify() disabled (too slow on Pi CPU). Use add+search CHUNKS only.");
-  } catch (e) {
-    console.log("✗ cognee — FAIL: LLM server not responding on :8011");
   }
 
   console.log(`
 Backend routing guide:
   qmd    — "search workspace docs, files, notes"
   mem0   — "remember X", personal facts, preferences
-  cognee — entity/concept queries, structured knowledge
 
 Default: search → mem0 + qmd | add → mem0
 `);
@@ -240,7 +160,7 @@ async function main() {
     console.log(`Usage:
   mem-router status
   mem-router add <text>
-  mem-router search <query> [--via=qmd|mem0|cognee] [--limit=N]
+  mem-router search <query> [--via=qmd|mem0] [--limit=N]
 `);
     process.exit(0);
   }
@@ -265,7 +185,7 @@ async function main() {
     const backends = via ? [via] : ["mem0"];
     console.log(`Adding to: ${backends.join(", ")}\n`);
     for (const b of backends) {
-      const result = b === "mem0" ? mem0Add(text) : b === "cognee" ? cogneeAdd(text) : null;
+      const result = b === "mem0" ? mem0Add(text) : null;
       if (result) console.log(JSON.stringify(result, null, 2));
     }
     return;
@@ -279,7 +199,6 @@ async function main() {
     for (const b of backends) {
       const r = b === "qmd" ? qmdSearch(text, limit)
               : b === "mem0" ? mem0Search(text, limit)
-              : b === "cognee" ? cogneeSearch(text, limit)
               : null;
       if (r) results.push(r);
     }
