@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3-Minute Ops Time-Leak Scorecard</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#10172d;
+      --panel-2:#0f1f3f;
+      --text:#e8efff;
+      --muted:#a9b8da;
+      --line:#22355f;
+      --accent:#4f8cff;
+      --accent-2:#6aa8ff;
+      --ok:#2dd4bf;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      max-width:820px;
+      margin:30px auto;
+      padding:0 16px;
+      line-height:1.5;
+      background:radial-gradient(1200px 600px at 20% -10%, #1b2f5f 0%, var(--bg) 45%);
+      color:var(--text);
+    }
+    h1{margin:0 0 8px 0;font-size:2rem;letter-spacing:.2px}
+    .muted{color:var(--muted);font-size:.98rem}
+    .hero{background:linear-gradient(135deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px 18px 10px 18px;margin-bottom:14px}
+    .card{border:1px solid var(--line);background:rgba(15,23,45,.8);border-radius:12px;padding:16px;margin:14px 0}
+    label{display:block;margin:10px 0;color:var(--text)}
+    input[type="text"],input[type="email"]{width:100%;padding:11px 12px;border:1px solid #2b4375;border-radius:10px;background:#0b1430;color:var(--text)}
+    input[type="radio"]{accent-color:var(--accent)}
+    .btn{padding:11px 16px;border-radius:10px;border:0;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;cursor:pointer;font-weight:600}
+    .btn:hover{filter:brightness(1.07)}
+    #result{margin-top:16px;padding:14px;border-radius:10px;background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.45)}
+    a.brand{color:#b9d2ff;text-decoration:none;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <a class="brand" href="https://www.datanovaconsulting.com" target="_blank" rel="noopener">DataNova Consulting</a>
+    <h1>3-Minute Ops Time-Leak Scorecard</h1>
+    <p class="muted">Business automation, your way. Answer 8 quick yes/no questions to see if workflow automation can give your team hours back each week.</p>
+  </div>
+
+  <form id="scorecard" class="card">
+    <label>Business name (optional)<br><input type="text" name="business"></label>
+    <label>Contact email (optional)<br><input type="email" name="email"></label>
+    <p class="muted">Tip: submit after each call so we keep your lead pipeline updated automatically.</p>
+
+    <div id="questions"></div>
+    <button type="submit">Calculate my score</button>
+  </form>
+
+  <div id="result" hidden></div>
+
+  <script>
+    const questions = [
+      "Do you manually copy data between POS/payment tools and another system?",
+      "Do you update spreadsheets daily for ops/reporting?",
+      "Are customer follow-ups inconsistent when staff get busy?",
+      "Do failed payments require manual intervention?",
+      "Does end-of-day reporting take more than 20 minutes?",
+      "If one key person is out, do important processes stall?",
+      "Do you use 3+ tools that don't sync cleanly?",
+      "Have manual-entry mistakes cost you money/time in the last 30 days?"
+    ];
+
+    const qWrap = document.getElementById('questions');
+    questions.forEach((q, i) => {
+      const id = `q${i+1}`;
+      const block = document.createElement('div');
+      block.className = 'card';
+      block.innerHTML = `
+        <strong>${i+1}. ${q}</strong>
+        <label><input type="radio" name="${id}" value="1" required> Yes</label>
+        <label><input type="radio" name="${id}" value="0" required> No</label>
+      `;
+      qWrap.appendChild(block);
+    });
+
+    document.getElementById('scorecard').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      let score = 0;
+      for (let i=1; i<=8; i++) score += Number(fd.get(`q${i}`) || 0);
+
+      let band = '';
+      let cta = '';
+      if (score <= 2) {
+        band = 'Low immediate automation need';
+        cta = 'You can still book a quick consult if you want a process review.';
+      } else if (score <= 4) {
+        band = 'Moderate automation need';
+        cta = 'Recommended: book a 15-minute Workflow Triage to identify the fastest win.';
+      } else {
+        band = 'High automation need';
+        cta = 'Strong fit: book a 15-minute Workflow Triage now to fix one bottleneck fast.';
+      }
+
+      const answers = [];
+      for (let i=1; i<=8; i++) answers.push(Number(fd.get(`q${i}`) || 0));
+
+      fetch('/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          business: fd.get('business') || '',
+          email: fd.get('email') || '',
+          score,
+          answers
+        })
+      }).catch(() => null);
+
+      const result = document.getElementById('result');
+      result.hidden = false;
+      result.innerHTML = `<h3>Your score: ${score}/8</h3><p><strong>${band}</strong></p><p>${cta}</p><p class="muted">Saved to local lead tracker.</p>`;
+    });
+  </script>
+</body>
+</html>

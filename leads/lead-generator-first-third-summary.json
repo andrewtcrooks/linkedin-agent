@@ -1,0 +1,50 @@
+{
+  "target": 33,
+  "selected": 33,
+  "created": 0,
+  "failed": 33,
+  "deleted_old": 32,
+  "preview": "/home/claw/.openclaw/workspace/leads/lead-generator-first-third-preview.csv",
+  "failed_examples": [
+    [
+      "Partnership Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "Compass Property Management Corp",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "TMG Property Management Services NW",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "Power Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "All Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "AZ Prime Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "Premier Access Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "Connected Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "206 Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ],
+    [
+      "5 Star Property Management",
+      "417 {\"exception\":\"frappe.exceptions.LinkValidationError: Could not find Market Segment: Property Management\",\"exc_type\":\"LinkValidationError\",\"exc\":\"[\\\"Traceback (m"
+    ]
+  ]
+}

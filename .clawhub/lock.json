@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "skills": {
+    "humanizer": {
+      "version": "1.0.0",
+      "installedAt": 1772539243150
+    },
+    "skill-vetter": {
+      "version": "1.0.0",
+      "installedAt": 1772539251533
+    },
+    "marketing": {
+      "version": "1.0.0",
+      "installedAt": 1772539260316
+    },
+    "prompt-engineering-2": {
+      "version": "0.1.0",
+      "installedAt": 1772539269500
+    },
+    "graphthulhu": {
+      "version": "1.0.0",
+      "installedAt": 1772539296768
+    },
+    "self-improving-agent": {
+      "version": "1.0.11",
+      "installedAt": 1772559603095
+    },
+    "mem0": {
+      "version": "1.0.0",
+      "installedAt": 1773107762403
+    }
+  }
+}

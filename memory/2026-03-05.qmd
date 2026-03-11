@@ -1,0 +1,14 @@
+---
+date: 2026-03-05
+type: daily-memory
+format: qmd
+---
+
+## Log
+
+- 02:53 PT — Ran proactive memory capture loop; no new user requests/decisions/commitments/TODOs beyond existing memory-capture process.
+- 16:57 PT — User requested: adopt fancy qmd memory format.
+- 16:58 PT — Switched memory system to qmd-first (`MEMORY.qmd`, `memory/*.qmd`) with legacy `.md` compatibility.
+- 17:04 PT — Added email env vars to `/home/claw/.openclaw/workspace/.env` with `EMAIL_ADDRESS=rook@datanovaconsulting.com`, `IMAP_HOST=mail.datanovaconsulting.com`, `IMAP_USER=rook@datanovaconsulting.com`, `IMAP_PORT=993`.
+- 17:44 PT — User preference set: use `agent-browser` whenever internet/web page browsing is needed.
+- 17:45 PT — Verified no top-level `playwright` package installed; `playwright-core` is installed as a dependency of `agent-browser`.

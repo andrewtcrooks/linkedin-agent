@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "agent-browser": "^0.16.3",
+    "csv-parse": "^6.1.0",
+    "csv-stringify": "^6.6.0",
+    "lobsterboard": "^0.3.2"
+  }
+}

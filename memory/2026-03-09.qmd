@@ -1,0 +1,3 @@
+- 03:53 PT — Set up proactive memory capture loop for daily notes in `memory/YYYY-MM-DD.qmd` (append-only, concise, non-sensitive, avoid duplicate last-entry content).
+- Decision/constraint: if there is nothing meaningful to add, stay quiet; on failure, report once and stop (no auto-retries).
+- Open TODO: continue appending key requests/decisions/commitments as meaningful events occur.

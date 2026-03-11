@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""
+Generate a GitHub App installation token and configure git to use it.
+Token is valid for ~1 hour. Run before git push/pull operations.
+"""
+import os, sys, time, json, subprocess, tempfile
+from pathlib import Path
+
+# Load config from .env
+env_path = Path.home() / '.openclaw' / '.env'
+config = {}
+for line in env_path.read_text().splitlines():
+    line = line.strip()
+    if '=' in line and not line.startswith('#'):
+        k, v = line.split('=', 1)
+        config[k.strip()] = v.strip()
+
+APP_ID = config['GITHUB_APP_ID']
+INSTALLATION_ID = config['GITHUB_INSTALLATION_ID']
+KEY_PATH = Path(config['GITHUB_APP_KEY_PATH'])
+
+if not KEY_PATH.exists():
+    print(f"ERROR: Key not found at {KEY_PATH}", file=sys.stderr)
+    sys.exit(1)
+
+# Generate JWT using PyJWT if available, else use python-jose or manual approach
+try:
+    import jwt as pyjwt
+    private_key = KEY_PATH.read_text()
+    now = int(time.time())
+    payload = {'iat': now - 60, 'exp': now + 600, 'iss': APP_ID}
+    jwt_token = pyjwt.encode(payload, private_key, algorithm='RS256')
+    if isinstance(jwt_token, bytes):
+        jwt_token = jwt_token.decode('utf-8')
+except ImportError:
+    # Fallback: generate JWT manually using openssl
+    import base64, hashlib, hmac
+    # Use openssl via subprocess to sign
+    header = base64.urlsafe_b64encode(json.dumps({'alg':'RS256','typ':'JWT'}).encode()).rstrip(b'=')
+    now = int(time.time())
+    payload_data = json.dumps({'iat': now - 60, 'exp': now + 600, 'iss': APP_ID}).encode()
+    payload_b64 = base64.urlsafe_b64encode(payload_data).rstrip(b'=')
+    signing_input = header + b'.' + payload_b64
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.txt') as f:
+        f.write(signing_input)
+        tmp = f.name
+    sig_raw = subprocess.check_output(
+        ['openssl', 'dgst', '-sha256', '-sign', str(KEY_PATH), tmp]
+    )
+    os.unlink(tmp)
+    sig = base64.urlsafe_b64encode(sig_raw).rstrip(b'=')
+    jwt_token = (signing_input + b'.' + sig).decode()
+
+# Exchange JWT for installation token
+import urllib.request, urllib.error
+req = urllib.request.Request(
+    f'https://api.github.com/app/installations/{INSTALLATION_ID}/access_tokens',
+    method='POST',
+    headers={
+        'Authorization': f'Bearer {jwt_token}',
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Length': '0',
+    }
+)
+try:
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read())
+except urllib.error.HTTPError as e:
+    print(f"ERROR: {e.code} {e.read().decode()}", file=sys.stderr)
+    sys.exit(1)
+
+token = data['token']
+expires = data['expires_at']
+print(f"Token obtained. Expires: {expires}", file=sys.stderr)
+
+# Configure git credential helper for github.com
+workspace = Path.home() / '.openclaw' / 'workspace'
+subprocess.run([
+    'git', '-C', str(workspace), 'remote', 'set-url', 'origin',
+    f'https://x-access-token:{token}@github.com/datastars-ai/rook.git'
+], check=True)
+
+# Also store in env file for other tools
+token_file = Path.home() / '.openclaw' / '.github-token'
+token_file.write_text(token)
+token_file.chmod(0o600)
+
+print(f"✓ Git remote updated with fresh token (expires {expires})")
+print(f"✓ Token cached at {token_file}")

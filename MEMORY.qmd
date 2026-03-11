@@ -1,0 +1,35 @@
+---
+title: Long-Term Memory
+updated: 2026-03-09
+format: qmd
+owner: Andrew
+assistant: Rook
+---
+
+## Durable context
+
+- Andrew is actively building a small-business automation acquisition funnel focused on quick qualification and a fast first-win offer.
+- Core offer to keep consistent: **"Fix one workflow in 7 days"** with a **15-minute workflow triage call** as the primary CTA.
+- Funnel strategy in use: short ops pain/scorecard intake first, then route qualified leads to booking.
+
+## Operations decisions
+
+- Keep OpenClaw workspace/config paths explicit and absolute in automation prompts/scripts (avoid `~` in cron task instructions) to prevent path-resolution failures.
+- For automation/cron flows, use fail-stop behavior on errors (report failure, do not auto-retry).
+- Workspace backup automation is in place and standardized on `origin/main` for routine pushes.
+- Never auto-apply OpenClaw updates on detection. First run a release-radar gate: review latest release notes/docs, classify each change into execution behavior / permission behavior / context-memory behavior / docs-UI only, then record an explicit decision (`run now`, `delay 24h`, or `defer until patch`). If permissions or memory are touched, canary-only first.
+
+## Local AI stack (as of 2026-03-10)
+
+- **Active memory systems:** QMD (workspace doc search) + mem0 (user preference memory)
+- **Shelved:** Cognee — too CPU/RAM heavy for current Pi hardware. Scripts preserved for future use.
+- **QMD:** 3 built-in local models (embed, rerank, query-expansion). Always use full path `/home/claw/.bun/bin/qmd` in automation. Use `QMD_FORCE_CPU=1` to avoid CUDA fallback noise.
+- **mem0:** Local llama.cpp server on ports 8011 (LLM) / 8012 (embed). Start with `mem0-llamacpp-start`. Uses `infer: false` fast-path for adds. Embed format patched to `encoding_format: "float"` in node_modules.
+- CUDA LLM models removed from Pi to save space. No GPU on this hardware.
+
+## Memory system
+
+- Canonical long-term file: `MEMORY.qmd`
+- Canonical daily files: `memory/YYYY-MM-DD.qmd`
+- Daily capture loop standard: append concise, non-sensitive, de-duplicated notes to the current day file; if nothing meaningful changed, stay quiet.
+- Legacy `.md` files are kept for backward compatibility.

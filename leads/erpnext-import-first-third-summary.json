@@ -1,0 +1,8 @@
+{
+  "csv": "/home/claw/.openclaw/workspace/leads/lead-generator-first-third-preview.csv",
+  "server": "https://erpnext.datanovaconsulting.com",
+  "total": 33,
+  "created": 33,
+  "failed": 0,
+  "failed_examples": []
+}

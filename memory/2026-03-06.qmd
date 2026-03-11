@@ -1,0 +1,10 @@
+---
+date: 2026-03-06
+type: daily-memory
+format: qmd
+---
+
+## Log
+
+- Initialized new daily qmd memory file.
+- Decision with Andrew: do not auto-apply OpenClaw updates when a new release is detected. Use a release-radar ritual first (review notes/docs, classify change type, and choose run now / delay 24h / defer until patch). If changes touch permissions or memory behavior, canary-only before production.
