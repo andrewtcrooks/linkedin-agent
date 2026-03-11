@@ -1,0 +1,306 @@
+#!/usr/bin/env node
+/**
+ * mem-router — Unified memory router for OpenClaw
+ *
+ * Routes memory operations to the right backend based on use case:
+ *
+ *   qmd   — Semantic search over indexed markdown files (workspace docs)
+ *            Best for: "what does my workspace say about X?"
+ *            Fast retrieval, no write support
+ *
+ *   mem0  — Episodic/factual memory (personal facts, preferences, history)
+ *            Best for: "remember that Andrew prefers X", "what do I know about Y?"
+ *            Read/write, vector similarity search
+ *
+ *   cognee — Structured knowledge graph (entities, relationships, concepts)
+ *            Best for: deep knowledge about documents, long-term concept linking
+ *            Slow on Pi (skip cognify), read/write via add+search CHUNKS
+ *
+ * Usage:
+ *   mem-router add   <text>           — add to best backend (mem0 by default)
+ *   mem-router search <query>         -- search all backends, merge results
+ *   mem-router search <query> --via=qmd|mem0|cognee
+ *   mem-router status                 -- health check all backends
+ *
+ * Environment (set in ~/.openclaw/.env or pass inline):
+ *   MEM0_LLM_BASE_URL     default http://127.0.0.1:8011/v1
+ *   MEM0_EMBED_BASE_URL   default http://127.0.0.1:8012/v1
+ *   COGNEE_DB_PATH        default /home/claw/.openclaw/workspace/.cognee
+ */
+
+import { execSync, execFileSync } from "child_process";
+import * as path from "path";
+import * as os from "os";
+
+const QMD     = "/home/claw/.bun/bin/qmd";
+const BUN     = "/home/claw/.bun/bin/bun";
+const MEM0DIR = path.join(os.homedir(), ".openclaw/workspace/skills/mem0/scripts");
+const PYTHON  = "/home/claw/.local/share/uv/tools/cognee/bin/python";
+
+const COGNEE_ENV = {
+  EMBEDDING_PROVIDER: "openai",
+  EMBEDDING_MODEL: "openai/bge-small-en-v1.5",
+  EMBEDDING_ENDPOINT: "http://127.0.0.1:8012/v1",
+  EMBEDDING_API_KEY: "local",
+  EMBEDDING_DIMENSIONS: "384",
+  LLM_PROVIDER: "openai",
+  LLM_MODEL: "openai/qwen2.5-1.5b-instruct",
+  LLM_ENDPOINT: "http://127.0.0.1:8011/v1",
+  LLM_API_KEY: "local",
+  ENABLE_BACKEND_ACCESS_CONTROL: "false",
+  COGNEE_SKIP_CONNECTION_TEST: "true",
+};
+
+// ── Routing rules ─────────────────────────────────────────────────────────────
+
+/**
+ * Decide which backend(s) to use for a query/add.
+ *
+ * Rules:
+ *  - Workspace/doc queries   → qmd  (markdown indexed files)
+ *  - Personal facts/prefs    → mem0 (episodic memory)
+ *  - Entity/concept queries  → cognee (knowledge graph chunks)
+ *  - Default search          → mem0 + qmd (fast, parallel-ish)
+ *  - Default add             → mem0
+ */
+function route(text, hints = {}) {
+  const t = text.toLowerCase();
+  if (hints.via) return [hints.via];
+
+  const docKeywords = ["workspace", "file", "document", "notes", "skill", "agents", "readme"];
+  const graphKeywords = ["who is", "what is", "relationship", "entity", "concept", "knows about"];
+  const personalKeywords = ["remember", "prefer", "andrew", "my ", "i like", "i use", "i am"];
+
+  if (docKeywords.some(k => t.includes(k))) return ["qmd"];
+  if (graphKeywords.some(k => t.includes(k))) return ["cognee", "mem0"];
+  if (personalKeywords.some(k => t.includes(k))) return ["mem0"];
+
+  // default search: both fast backends
+  return ["mem0", "qmd"];
+}
+
+// ── Backend implementations ───────────────────────────────────────────────────
+
+function qmdSearch(query, limit = 3) {
+  try {
+    const out = execFileSync(QMD, ["search", query, "-c", "workspace", "--limit", String(limit)], {
+      timeout: 15000,
+      encoding: "utf8",
+    });
+    return { backend: "qmd", results: parseQmdOutput(out) };
+  } catch (e) {
+    return { backend: "qmd", error: e.message, results: [] };
+  }
+}
+
+function parseQmdOutput(raw) {
+  // qmd returns ranked results with file paths and snippets
+  const lines = raw.split("\n").filter(l => l.trim());
+  const results = [];
+  let current = null;
+  for (const line of lines) {
+    if (line.startsWith("  ") && current) {
+      current.snippet = (current.snippet || "") + line.trim() + " ";
+    } else if (line.includes("qmd://") || line.match(/^\d+\./)) {
+      if (current) results.push(current);
+      current = { source: line.trim(), snippet: "" };
+    }
+  }
+  if (current) results.push(current);
+  return results.slice(0, 5);
+}
+
+function mem0Add(text) {
+  try {
+    const out = execFileSync(BUN, [path.join(MEM0DIR, "mem0-add.js"), text], {
+      timeout: 30000,
+      encoding: "utf8",
+    });
+    return { backend: "mem0", success: true, output: out.trim() };
+  } catch (e) {
+    return { backend: "mem0", success: false, error: e.message };
+  }
+}
+
+function mem0Search(query, limit = 3) {
+  try {
+    const out = execFileSync(BUN, [path.join(MEM0DIR, "mem0-search.js"), query, `--limit=${limit}`], {
+      timeout: 30000,
+      encoding: "utf8",
+    });
+    return { backend: "mem0", results: parseMem0Output(out) };
+  } catch (e) {
+    return { backend: "mem0", error: e.message, results: [] };
+  }
+}
+
+function parseMem0Output(raw) {
+  const lines = raw.split("\n").filter(l => l.trim() && !l.startsWith("Found") && !l.startsWith("No memories"));
+  const results = [];
+  for (const line of lines) {
+    const m = line.match(/^\d+\.\s+(.+)/);
+    if (m) results.push({ memory: m[1].trim() });
+  }
+  return results;
+}
+
+function cogneeAdd(text) {
+  const script = `
+import os, asyncio
+for k, v in ${JSON.stringify(COGNEE_ENV)}.items():
+    os.environ[k] = v
+import cognee
+asyncio.run(cognee.add(${JSON.stringify(text)}))
+print("added")
+`.trim();
+
+  try {
+    const out = execFileSync(PYTHON, ["-c", script], {
+      timeout: 90000,
+      encoding: "utf8",
+      env: { ...process.env, ...COGNEE_ENV },
+    });
+    return { backend: "cognee", success: true, output: out.trim() };
+  } catch (e) {
+    return { backend: "cognee", success: false, error: e.message };
+  }
+}
+
+function cogneeSearch(query, limit = 3) {
+  const script = `
+import os, asyncio, json
+for k, v in ${JSON.stringify(COGNEE_ENV)}.items():
+    os.environ[k] = v
+import cognee
+results = asyncio.run(cognee.search(${JSON.stringify(query)}, query_type=cognee.SearchType.CHUNKS))
+print(json.dumps([str(r) for r in (results or [])[:${limit}]]))
+`.trim();
+
+  try {
+    const out = execFileSync(PYTHON, ["-c", script], {
+      timeout: 90000,
+      encoding: "utf8",
+      env: { ...process.env, ...COGNEE_ENV },
+    });
+    const lines = out.split("\n").filter(l => l.startsWith("["));
+    const parsed = lines.length ? JSON.parse(lines[lines.length - 1]) : [];
+    return { backend: "cognee", results: parsed.map(r => ({ memory: r })) };
+  } catch (e) {
+    return { backend: "cognee", error: e.message, results: [] };
+  }
+}
+
+function checkStatus() {
+  console.log("Checking memory backend status...\n");
+
+  // qmd
+  try {
+    execFileSync(QMD, ["status"], { timeout: 5000, stdio: "pipe" });
+    console.log("✓ qmd    — OK (use absolute path, not in PATH)");
+  } catch (e) {
+    console.log("✗ qmd    — FAIL:", e.message.split("\n")[0]);
+  }
+
+  // mem0 (check embedding endpoint)
+  try {
+    execFileSync("curl", ["-sf", "-H", "Authorization: Bearer local",
+      "http://127.0.0.1:8012/v1/models"], { timeout: 5000, stdio: "pipe" });
+    console.log("✓ mem0   — OK (embed server up)");
+  } catch (e) {
+    console.log("✗ mem0   — FAIL: embed server not responding on :8012");
+  }
+
+  // cognee (check LLM endpoint)
+  try {
+    execFileSync("curl", ["-sf", "-H", "Authorization: Bearer local",
+      "http://127.0.0.1:8011/v1/models"], { timeout: 5000, stdio: "pipe" });
+    console.log("✓ cognee — OK (LLM server up on :8011)");
+    console.log("  Note: cognify() disabled (too slow on Pi CPU). Use add+search CHUNKS only.");
+  } catch (e) {
+    console.log("✗ cognee — FAIL: LLM server not responding on :8011");
+  }
+
+  console.log(`
+Backend routing guide:
+  qmd    — "search workspace docs, files, notes"
+  mem0   — "remember X", personal facts, preferences
+  cognee — entity/concept queries, structured knowledge
+
+Default: search → mem0 + qmd | add → mem0
+`);
+}
+
+// ── CLI ───────────────────────────────────────────────────────────────────────
+
+async function main() {
+  const args = process.argv.slice(2);
+  const cmd = args[0];
+
+  if (!cmd || cmd === "--help" || cmd === "-h") {
+    console.log(`Usage:
+  mem-router status
+  mem-router add <text>
+  mem-router search <query> [--via=qmd|mem0|cognee] [--limit=N]
+`);
+    process.exit(0);
+  }
+
+  if (cmd === "status") {
+    checkStatus();
+    return;
+  }
+
+  const viaFlag = args.find(a => a.startsWith("--via="));
+  const limitFlag = args.find(a => a.startsWith("--limit="));
+  const via = viaFlag ? viaFlag.split("=")[1] : null;
+  const limit = limitFlag ? parseInt(limitFlag.split("=")[1]) : 3;
+  const text = args.slice(1).filter(a => !a.startsWith("--")).join(" ");
+
+  if (!text) {
+    console.error("Error: text/query required");
+    process.exit(1);
+  }
+
+  if (cmd === "add") {
+    const backends = via ? [via] : ["mem0"];
+    console.log(`Adding to: ${backends.join(", ")}\n`);
+    for (const b of backends) {
+      const result = b === "mem0" ? mem0Add(text) : b === "cognee" ? cogneeAdd(text) : null;
+      if (result) console.log(JSON.stringify(result, null, 2));
+    }
+    return;
+  }
+
+  if (cmd === "search") {
+    const backends = route(text, { via });
+    console.log(`Searching: ${backends.join(", ")}\n`);
+    const results = [];
+
+    for (const b of backends) {
+      const r = b === "qmd" ? qmdSearch(text, limit)
+              : b === "mem0" ? mem0Search(text, limit)
+              : b === "cognee" ? cogneeSearch(text, limit)
+              : null;
+      if (r) results.push(r);
+    }
+
+    for (const r of results) {
+      if (r.error) {
+        console.log(`[${r.backend}] ERROR: ${r.error}`);
+      } else {
+        console.log(`[${r.backend}] ${r.results.length} result(s):`);
+        r.results.forEach((item, i) => {
+          const text = item.memory || item.snippet || JSON.stringify(item);
+          console.log(`  ${i + 1}. ${text.slice(0, 200)}`);
+        });
+      }
+      console.log();
+    }
+    return;
+  }
+
+  console.error(`Unknown command: ${cmd}`);
+  process.exit(1);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });
