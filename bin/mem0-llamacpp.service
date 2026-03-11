@@ -1,0 +1,13 @@
+[Unit]
+Description=mem0 llama_cpp inference servers (LLM :8011 + embed :8012)
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/home/claw/.openclaw/workspace/bin/mem0-llamacpp-start
+ExecStop=/home/claw/.openclaw/workspace/bin/mem0-llamacpp-stop
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
