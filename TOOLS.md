@@ -88,3 +88,27 @@ TOKEN=$(/home/claw/.openclaw/workspace/bin/gh-app-token) && echo "$TOKEN" | gh a
   - Index/vectors: `~/.cache/qmd/index.sqlite`
   - Models: `~/.cache/qmd/models/`
   - Config: `~/.config/qmd/index.yml`
+
+### Mem0 Auto-Capture (Always On)
+
+**Before every response:** Search mem0 for relevant context using the user's message as the query:
+```bash
+node /home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-search.js "USER_QUERY" --limit=3
+```
+Inject returned memories into your reasoning before replying. If mem0 fails, continue — never block a response.
+
+**After every substantive exchange:** Store the conversation so mem0 can extract learnings:
+```bash
+node /home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-add.js --messages='[{"role":"user","content":"..."},{"role":"assistant","content":"..."}]'
+```
+
+**Explicit "remember this":** Store immediately as a direct fact:
+```bash
+node /home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-add.js "exact fact to remember"
+```
+
+**Rules:**
+- Always search first, respond second
+- Store after conversations containing preferences, patterns, corrections, or new facts
+- Do NOT store: secrets, API keys, temporary context, errors, things already in MEMORY.md
+- If mem0 errors, log it silently and continue — never surface mem0 failures to the user
