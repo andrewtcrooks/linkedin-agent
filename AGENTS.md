@@ -219,6 +219,24 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## Writing Style Rules
+
+For polished, public-facing, or persuasive writing, default to a more human style:
+- avoid em dashes unless truly necessary
+- prefer commas, periods, or parentheses
+- avoid hype, puffery, and synthetic polish
+- prefer direct language over over-structured "AI answer" scaffolding
+- do not overuse canned phrases like "bottom line," "guiding principle," or similar stock framing
+
+When drafting or rewriting material intended to represent the user publicly, use the `humanizer` skill/workflow deliberately. Typical triggers:
+- LinkedIn/profile rewrites
+- resumes and cover letters
+- website copy
+- marketing/outreach copy
+- polished public-facing drafts
+
+Do not force the humanizer workflow on short factual replies, diagnostics, or concise operational updates unless the user asks.
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
