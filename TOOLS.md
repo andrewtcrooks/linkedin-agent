@@ -63,6 +63,24 @@ Add whatever helps you do your job. This is your cheat sheet.
 - Use heavier models only when explicitly requested or clearly justified by the task (for example, deep strategy, difficult research synthesis, or especially tricky reasoning)
 - In practice: prefer `agentId: main` or the default GPT-5.4 path for background jobs; reserve `deep` / heavier agents for exceptional cases
 
+### Tool / Plugin Intake Policy
+
+- Prefer first-class OpenClaw tools first
+- Prefer CLI tools over server-heavy integrations when both can solve the problem
+- Do not add broad MCP/plugin sprawl by default
+- Before adding a new tool/plugin/integration, check:
+  1. does OpenClaw already have a first-class tool?
+  2. can a simple CLI/script solve it instead?
+  3. what permissions/auth/data exposure does it require?
+  4. is it actively maintained?
+  5. does it solve a genuinely missing surface?
+- Prioritize only a few categories where additional integrations may actually matter:
+  - Linear
+  - Notion
+  - richer Slack/Discord admin workflows
+  - SQLite / local DB inspection
+- Avoid server daemons unless they are clearly worth the operational complexity
+
 ### GitHub Authentication
 
 **ALWAYS use GitHub App credentials for ALL GitHub operations** (issues, PRs, API calls, etc.)
