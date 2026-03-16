@@ -117,6 +117,17 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.
 
+For web work, follow the browser discipline in `docs/browser-operating-protocol-v1.md`.
+
+## Session Split Rules
+
+Separate conversational/help work from coding/build work whenever possible.
+
+- Main session: user conversation, decisions, light coordination, summaries
+- Coding/build sessions: implementation, refactors, repo work, heavy debugging, long-running execution
+
+For coding/build tasks, prefer persistent or isolated coding sessions so implementation context stays clean and does not pollute the main conversation.
+
 
 **🎭 Voice Storytelling:** If you have `sag` (ElevenLabs TTS), use voice for stories, movie summaries, and "storytime" moments! Way more engaging than walls of text. Surprise people with funny voices.
 
@@ -226,6 +237,14 @@ This is a starting point. Add your own conventions, style, and rules as you figu
 - If you notice you're repeating an action or getting the same result, stop and explain what's happening.
 - If a command times out, report it. Do not re-run it silently.
 - When context feels stale or you're unsure what was already tried, ask rather than guess.
+
+## Context Compaction Rules
+
+For long-running coding, planning, or research tasks:
+- compact/summarize at natural phase boundaries instead of waiting for the context window to get messy
+- especially compact before large file reads, before/after refactors, after investigation phases, and before switching subtasks
+- preserve decisions, failures, open questions, and next actions in the summary
+- prefer compact handoffs over dragging large raw tool output forward
 
 ## Cron Task Prompt Rule
 

@@ -43,6 +43,8 @@ Add whatever helps you do your job. This is your cheat sheet.
 
 - Default web page browsing/automation path: **agent-browser** skill/workflow.
 - Prefer agent-browser for opening pages, interacting with sites, scraping, screenshots, and web testing tasks.
+- For operating discipline, follow: `docs/browser-operating-protocol-v1.md`
+- Prefer `web_search` / `web_fetch` before browser automation when a lighter tool can answer the request.
 - Note: `agent-browser` currently depends on `playwright-core` under the hood.
 
 ### Marketing
@@ -54,6 +56,12 @@ Add whatever helps you do your job. This is your cheat sheet.
 - Core offer: "Fix one workflow in 7 days"
 - CTA: 15-minute workflow triage call
 - Preferred verticals: Local services, agencies, clinics, retail
+
+### Sub-Agent Model Policy
+
+- Default background / unattended / batch sub-agent work should use the cheaper default model path: **GPT-5.4**
+- Use heavier models only when explicitly requested or clearly justified by the task (for example, deep strategy, difficult research synthesis, or especially tricky reasoning)
+- In practice: prefer `agentId: main` or the default GPT-5.4 path for background jobs; reserve `deep` / heavier agents for exceptional cases
 
 ### GitHub Authentication
 
