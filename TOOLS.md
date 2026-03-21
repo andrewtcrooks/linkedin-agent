@@ -39,12 +39,12 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 Add whatever helps you do your job. This is your cheat sheet.
 
-### Web Search (SearXNG)
+### Web Search — DEFAULT: SearXNG (REQUIRED)
 
 - Default search engine: SearXNG at http://192.168.1.3:8888 (local network)
 - Script: /home/claw/.openclaw/workspace/bin/search "query" [num_results]
 - Env var: SEARXNG_URL (set in ~/.openclaw/.env)
-- **Prefer this for all web searches** — faster, private, no API key needed
+- **ALWAYS use this first for web searches. Do NOT use web_search or brave unless SearXNG fails.**
 - Fallback to BRAVE_SEARCH_API_KEY only if SearXNG is unreachable
 - Use agent-browser only for page interaction/scraping (not search)
 

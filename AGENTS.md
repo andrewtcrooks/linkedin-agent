@@ -296,3 +296,8 @@ For long-running coding, planning, or research tasks:
 ## Cron Task Prompt Rule
 
 - Add this line to cron task prompts: "If this task fails, report the failure and stop. Do not retry automatically."
+
+## Tool Selection Rules
+
+- **Web search = SearXNG. Always.** Call `/home/claw/.openclaw/workspace/bin/search "query"` first. Do not use web_search or brave unless the script errors out.
+- Do not explain your tool preference. Do not hedge. Just use the right tool.
