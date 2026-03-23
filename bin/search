@@ -1,9 +1,7 @@
 #!/bin/bash
-# search - Query local SearXNG instance
+# search - Query SearXNG with Brave + DDG fallback and result caching
 # Usage: search "query" [num_results]
 QUERY="$1"
 NUM="${2:-10}"
-SEARXNG_URL="${SEARXNG_URL:-http://192.168.1.3:8888}"
 if [ -z "$QUERY" ]; then echo "Usage: search query [num_results]" >&2; exit 1; fi
-ENCODED=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$QUERY")
-curl -sf "${SEARXNG_URL}/search?q=${ENCODED}&format=json" | python3 /home/claw/.openclaw/workspace/bin/search-format.py "$NUM"
+python3 /home/claw/.openclaw/workspace/bin/search-engine.py "$QUERY" "$NUM"

@@ -4,7 +4,7 @@ num = int(sys.argv[1]) if len(sys.argv) > 1 else 10
 try:
     data = json.load(sys.stdin)
 except json.JSONDecodeError:
-    print(Error: invalid JSON response from SearXNG)
+    print("Error: invalid JSON response from SearXNG")
     sys.exit(1)
 
 results = data.get('results', [])[:num]
