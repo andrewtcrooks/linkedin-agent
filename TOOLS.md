@@ -147,3 +147,22 @@ node /home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-add.js "exact fact 
 - Store after conversations containing preferences, patterns, corrections, or new facts
 - Do NOT store: secrets, API keys, temporary context, errors, things already in MEMORY.md
 - If mem0 errors, log it silently and continue — never surface mem0 failures to the user
+
+### ClawHub CLI
+
+- Binary (full path): `/home/claw/.npm-global/bin/clawhub`
+- Always use the full absolute path — do NOT wrap in `bash -lc` just to set PATH
+- Example: `/home/claw/.npm-global/bin/clawhub search reddit`
+- `clawhub skills list` — list installed skills
+- `clawhub search <term>` — search ClawHub marketplace
+
+### Exec Approval Policy
+
+All exec calls go through the gateway approval system. To avoid blocking:
+- **Always use absolute paths** for binaries — never rely on PATH via `bash -lc 'export PATH=...'`
+- Pre-approved binaries (no approval needed):
+  - `/home/claw/.openclaw/workspace/bin/search`
+  - `/home/claw/.npm-global/bin/clawhub`
+  - `/home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-search.js`
+  - `/home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-add.js`
+  - `/home/claw/.bun/bin/qmd`
