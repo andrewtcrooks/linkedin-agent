@@ -23,6 +23,7 @@ You wake up fresh each session. These files are your continuity:
 
 - **Daily notes:** `memory/YYYY-MM-DD.qmd` (create `memory/` if needed; `.md` allowed for legacy) — raw logs of what happened
 - **Long-term:** `MEMORY.qmd` (`MEMORY.md` kept as legacy pointer) — your curated memories, like a human's long-term memory
+- **mem0:** Semantic vector memory for preferences and personal context. When answering questions about user preferences, habits, or past choices, search it: `bun /home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-search.js "query" --limit=3`
 
 Capture what matters. Decisions, context, things to remember. Skip the secrets unless asked to keep them.
 
