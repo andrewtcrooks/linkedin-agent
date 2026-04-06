@@ -72,6 +72,14 @@ Add whatever helps you do your job. This is your cheat sheet.
 - Use heavier models only when explicitly requested or clearly justified by the task (for example, deep strategy, difficult research synthesis, or especially tricky reasoning)
 - In practice: prefer `agentId: main` or the default GPT-5.4 path for background jobs; reserve `deep` / heavier agents for exceptional cases
 
+### Coding Agent Policy
+
+- **Codex is the official and only supported coding agent** for this workspace.
+- If a skill or older instruction mentions Claude Code as a default, fallback, or co-equal option, treat that guidance as obsolete.
+- Prefer Codex for implementation, refactors, repo exploration, and coding assistance.
+- Do **not** use Claude Code for this workspace.
+- When updating local instructions, examples, prompts, or automations, remove Claude Code as an option instead of listing it as alternative/legacy.
+
 ### Tool / Plugin Intake Policy
 
 - Prefer first-class OpenClaw tools first

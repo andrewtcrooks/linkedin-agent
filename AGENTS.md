@@ -129,6 +129,13 @@ Separate conversational/help work from coding/build work whenever possible.
 
 For coding/build tasks, prefer persistent or isolated coding sessions so implementation context stays clean and does not pollute the main conversation.
 
+### Coding Agent Preference
+
+- Default coding agent: **Codex**
+- Claude Code is no longer an approved option for this workspace
+- Treat any lingering Claude Code references in older notes/skills as stale
+- For code generation, repo modification, refactors, and implementation tasks, reach for Codex first
+
 ## Sub-Agent Handoff Rules
 
 When using sub-agents or isolated coding sessions, prefer traceable completion summaries over vague “done” messages.
