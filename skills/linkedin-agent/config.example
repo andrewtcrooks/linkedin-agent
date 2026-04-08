@@ -1,0 +1,17 @@
+# linkedin-agent configuration
+# Copy to ~/.linkedin-agent/config and fill in your values
+
+# Your LinkedIn profile username (the part after linkedin.com/in/)
+LINKEDIN_PROFILE="your-username"
+
+# Path to agent-browser binary
+# Find it with: which agent-browser
+# Or if installed locally: ~/.openclaw/workspace/node_modules/.bin/agent-browser
+AGENT_BROWSER="/path/to/agent-browser"
+
+# LinkedIn session profile directory for agent-browser (optional)
+AGENT_BROWSER_PROFILE="${HOME}/.agent-browser/linkedin-profile"
+
+# LinkedIn session cookie — set this in ~/.openclaw/.env instead:
+#   LINKEDIN_SESSION_ID=<your li_at cookie value>
+# See README.md for instructions on how to get this value.
