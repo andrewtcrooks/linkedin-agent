@@ -309,3 +309,30 @@ For long-running coding, planning, or research tasks:
 
 - **Web search = SearXNG. Always.** Call `/home/claw/.openclaw/workspace/bin/search "query"` first. Do not use web_search or brave unless the script errors out.
 - Do not explain your tool preference. Do not hedge. Just use the right tool.
+
+## Code Lookup Rules (jCodeMunch)
+
+You have access to the `jcodemunch` MCP server (running on the Mac at 192.168.1.3:8095). Use it for all code lookups instead of reading whole files.
+
+**Indexed repos:**
+- `local/openclaw-6591382c` — openclaw source (27,990 symbols, TypeScript)
+- `local/rook-workspace-c3d63e39` — Pi workspace mirror (11,363 symbols — JS/TS/Python scripts, synced every 2h from rook)
+- `local/openclaw-slack-router-317b4fd1 — openclaw-slack-router (242 symbols, TypeScript)
+
+**How to use it:**
+
+1. **Find a function or class by name:** `jcodemunch.search_symbols` with your query
+2. **Read a specific symbol's body:** `jcodemunch.get_symbol_source` with the symbol name + file path
+3. **Explore a file's structure:** `jcodemunch.get_file_outline` — returns all symbols in a file without reading the whole thing
+4. **Search by concept:** `jcodemunch.get_ranked_context` or `jcodemunch.search_text`
+
+**Rules:**
+- NEVER read a full `.ts` file from the openclaw or openclaw-slack-router repos when jCodeMunch can answer the question instead
+- Use `get_file_outline` first — only call `get_symbol_source` on the specific symbol you need
+- For "how does X work" questions about openclaw internals, search symbols before reaching for file reads
+- jCodeMunch does NOT cover workspace scripts, getrook docs, or Pi-local files — use `qmd` or direct reads for those
+
+**For non-code content (docs, markdown, workspace files):**
+- Use `qmd` (`/home/claw/.bun/bin/qmd search "query" -c workspace`) for semantic search over workspace docs
+- Use `mem0-search.js` for personal preferences and past decisions
+- Avoid loading whole markdown files into context when a targeted search would answer the question
