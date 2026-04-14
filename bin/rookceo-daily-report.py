@@ -67,17 +67,11 @@ bounce_pct = round((bounces / visitors * 100) if visitors else 0)
 
 # Top referrers
 try:
-    refs     = umami_get(f'/api/websites/{UMAMI_WEBSITE_ID}/metrics?startAt={start_ms}&endAt={end_ms}&type=referrer', umami_token)
+    refs = umami_get(f'/api/websites/{UMAMI_WEBSITE_ID}/metrics?startAt={start_ms}&endAt={end_ms}&type=referrer', umami_token)
     top_refs = refs[:3] if refs else []
-    ref_lines = '\n'.join(f"  • {r['x'] or 'Direct'}: {r['y']}" for r in top_refs)
+    ref_lines = '\n'.join(f" • {(r.get('x') or 'Direct')}: {r.get('y', 0)}" for r in top_refs)
 except Exception:
-    ref_lines = '  • No referrer data'
-
-traffic_notable = []
-if visitors == 0:
-    traffic_notable.append('No traffic yesterday.')
-if visitors >= 100:
-    traffic_notable.append(f'Strong day — {visitors} unique visitors.')
+    ref_lines = ' • No referrer data'
 
 traffic_msg = f"""**Site Traffic — {date_str}**
 
@@ -86,8 +80,8 @@ traffic_msg = f"""**Site Traffic — {date_str}**
 ↩️ Bounce rate: **{bounce_pct}%**
 
 **Top referrers:**
-{ref_lines if ref_lines else '  • None'}
-{chr(10) + ' '.join(traffic_notable) if traffic_notable else ''}
+{ref_lines if ref_lines else ' • None'}
+
 _rookceo.com · Umami_"""
 
 discord_post(THREAD_TRAFFIC, traffic_msg)

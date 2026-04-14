@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+/**
+ * mem0-mirror: dumps mem0 facts into today's daily memory file as a fallback copy.
+ * Run periodically so memory survives Mac/Qdrant downtime.
+ */
+
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const MEMORY_DIR = '/home/claw/.openclaw/workspace/memory';
+const MEM0_LIST = '/home/claw/.openclaw/workspace/skills/mem0/scripts/mem0-list.js';
+
+const today = new Date().toISOString().slice(0, 10);
+const mirrorFile = path.join(MEMORY_DIR, `${today}-mem0-mirror.md`);
+
+try {
+  const raw = execSync(`node ${MEM0_LIST} 2>/dev/null`, { encoding: 'utf8', timeout: 15000 });
+  if (!raw || raw.trim().length < 10) {
+    console.log('mem0 returned nothing — skipping mirror');
+    process.exit(0);
+  }
+
+  const header = `# mem0 mirror — ${today} ${new Date().toTimeString().slice(0,5)}\n\n`;
+  fs.writeFileSync(mirrorFile, header + raw.trim() + '\n');
+  console.log(`Wrote mem0 mirror to ${mirrorFile}`);
+} catch (e) {
+  console.error('mem0-mirror failed:', e.message);
+  process.exit(1);
+}
